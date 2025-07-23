@@ -1,0 +1,32 @@
+name: model
+
+on: workflow_dispatch
+
+jobs:
+  jax2tf_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          pip install uv~=0.5.30
+          uv pip install --system .[minimum-jaxlib] -r build/test-requirements.txt
+          uv pip install --system --pre tensorflow==2.19.0
+
+      - name: Print environment variables
+        run: |
+          echo "JAX_NUM_GENERATED_CASES=$JAX_NUM_GENERATED_CASES"
+          echo "JAX_ENABLE_X64=$JAX_ENABLE_X64"
+          echo "JAX_ENABLE_CHECKS=$JAX_ENABLE_CHECKS"
+          echo "JAX_SKIP_SLOW_TESTS=$JAX_SKIP_SLOW_TESTS"
+
+      - name: Run tests
+        run: |
+          pytest -n auto --tb=short --maxfail=20 jax/experimental/jax2tf/tests/jax2tf_test.py
